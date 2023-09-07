@@ -1,1 +1,5 @@
 /.env
+/offload_folder/
+/chatbot-harry-potter_trial.ipynb
+/models/
+/.ipynb_checkpoints/
