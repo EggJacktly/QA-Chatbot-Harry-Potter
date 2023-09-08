@@ -14,5 +14,3 @@ bitsandbytes~=0.41.1
 jupyter~=1.0.0
 # to use the gpt4all models locally, uncomment the following line
 # gpt4all~=1.0.8
-
-# if using multiple GPUs, uncomment the following line
