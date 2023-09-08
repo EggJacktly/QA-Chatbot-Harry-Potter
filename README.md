@@ -24,7 +24,6 @@ The application follows these steps to provide responses to your questions:
 
 4. Retrieval: The app analyzes the text chunks in relation to the question you ask to determine which ones are the most semantically comparable.
 
-
 5. Response Generation: The language model receives the chosen chunks and produces a response based on the Harry Potter Book content.
 
 ## Dependencies and Installation
@@ -46,7 +45,7 @@ To use the HarryPotter Chat App, follow these steps:
 
 1. Ensure that you have installed the required dependencies.
 
-2. Run the `main.py` file using the Streamlit CLI. Execute the following command:
+2. Run the `chatbotapp.py` file using the Streamlit CLI. Execute the following command:
    ```
    streamlit run chatbotapp.py
    ```
@@ -59,6 +58,8 @@ To use the HarryPotter Chat App, follow these steps:
 5. There are options to change hyperparameters like temperature, top_p, repetition_penalty, etc.
 
 6. Ask questions in natural language about the Harry Potter Universe.
+
+![Chatbot App](./assets/chatbotapp.png)
 
 ## License
 
