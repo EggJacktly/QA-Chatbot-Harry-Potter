@@ -2,3 +2,17 @@ streamlit~=1.26.0
 torch~=2.0.1
 langchain~=0.0.279
 transformers~=4.32.1
+pandas~=1.5.3
+pypdf~=3.15.4
+faiss-gpu~=1.7.2
+InstructorEmbedding~=1.0.1
+sentence-transformers~=2.2.2
+tiktoken~=0.4.0
+einops~=0.6.1
+accelerate~=0.22.0
+bitsandbytes~=0.41.1
+jupyter~=1.0.0
+# to use the gpt4all models locally, uncomment the following line
+# gpt4all~=1.0.8
+
+# if using multiple GPUs, uncomment the following line

@@ -1,0 +1,9 @@
+vicuna
+lmsys/vicuna-7b-v1.3
+intfloat/multilingual-e5-large
+similarity
+0.0
+0.95
+1
+500
+100
