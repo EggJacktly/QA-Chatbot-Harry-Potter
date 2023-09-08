@@ -59,6 +59,8 @@ To use the HarryPotter Chat App, follow these steps:
 
 6. Ask questions in natural language about the Harry Potter Universe.
 
+![Chatbot App English Example](./assets/chatbot_app_example_en.png)
+
 ![Chatbot App](./assets/chatbotapp.png)
 
 ## License
