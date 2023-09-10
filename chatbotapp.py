@@ -2,7 +2,7 @@ import os
 
 import streamlit as st
 import torch
-from langchain import FAISS, HuggingFaceHub, HuggingFacePipeline
+from langchain import FAISS, HuggingFacePipeline
 from langchain.chains import ConversationalRetrievalChain
 from langchain.document_loaders import PyPDFLoader, DirectoryLoader
 from langchain.embeddings import HuggingFaceInstructEmbeddings
@@ -10,7 +10,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 
-from html_inputs import bot_template, user_template, css, CUSTOM_PROMPT
+from html_inputs import bot_template, user_template, css, custom_prompt_en, custom_prompt_es
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -45,11 +45,11 @@ def get_document_chunks(documents, split_chunk_size, split_overlap):
     return doc_chunks
 
 
-def get_vectorstore(doc_chunks, language):
+def get_vectorstore(doc_chunks, language, new_vectorstore):
     if language == "en":
         model_name = best_model.split('\n')[2]
     elif language == "es":
-        model_name = best_model.split('\n')[2]
+        model_name = 'paraphrase-multilingual-MiniLM-L12-v2'
     else:
         raise ValueError("language must be 'en' or 'es'")
 
@@ -57,12 +57,14 @@ def get_vectorstore(doc_chunks, language):
         model_name=model_name,
         model_kwargs={"device": "cuda"}
     )
-
-    if os.path.isfile(f"data/vectorstore-{language}/index.faiss"):
-        vectorstore = FAISS.load_local(
-            f"data/vectorstore-{language}",
-            embeddings
-        )
+    if new_vectorstore == 'No':
+        if os.path.isfile(f"data/vectorstore-{language}/index.faiss"):
+            vectorstore = FAISS.load_local(
+                f"data/vectorstore-{language}",
+                embeddings
+            )
+        else:
+            raise ValueError("No vectorstore found, select 'Yes' to create a new one")
     else:
         vectorstore = FAISS.from_documents(
             doc_chunks,
@@ -72,11 +74,19 @@ def get_vectorstore(doc_chunks, language):
     return vectorstore
 
 
-def create_model(model_repo):
+def create_model(model_repo, language):
+
+    if language == "en":
+        bit_model = True
+    elif language == "es":
+        bit_model = False
+    else:
+        raise ValueError("language must be 'en' or 'es'")
+
     tokenizer = AutoTokenizer.from_pretrained(model_repo, use_fast=True)
     model = AutoModelForCausalLM.from_pretrained(
         model_repo,
-        load_in_4bit=True,
+        load_in_4bit=bit_model,
         device_map='auto',
         torch_dtype=torch.float16,
         low_cpu_mem_usage=True,
@@ -85,8 +95,10 @@ def create_model(model_repo):
     return model, tokenizer
 
 
-def get_qa_chain(vectorstore, selected_model, temperature, max_length, top_p, repetition_penalty, k):
-    model_, tokenizer = create_model(selected_model)
+def get_qa_chain(vectorstore, selected_model, temperature, max_length,
+                 top_p, repetition_penalty, k, custom_prompt, language):
+
+    model_, tokenizer = create_model(selected_model, language)
 
     pipe = pipeline(
         task="text-generation",
@@ -108,7 +120,7 @@ def get_qa_chain(vectorstore, selected_model, temperature, max_length, top_p, re
     qa_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=vectorstore.as_retriever(search_kwargs={"k": k, "search_type": "similarity"}),
-        combine_docs_chain_kwargs={"prompt": CUSTOM_PROMPT},
+        combine_docs_chain_kwargs={"prompt": custom_prompt},
         memory=memory
     )
     return qa_chain
@@ -126,9 +138,9 @@ def handle_prompts(user_question):
                 "{{MSG}}", message.content), unsafe_allow_html=True)
 
 
-def clear_chat_history():
-    st.session_state.chat_history = None
-    st.session_state.conversation = None
+# def clear_chat_history():
+#     st.session_state.chat_history = None
+#     st.session_state.conversation = None
 
 
 def main():
@@ -145,35 +157,51 @@ def main():
     with st.sidebar:
         st.subheader('Models and parameters')
         selected_language = st.sidebar.selectbox('Choose a language / Elige un idioma',
-                                                 ['English'],
+                                                 ['English', 'Spanish'],
                                                  key='selected_language')
         if selected_language == 'English':
             language = 'en'
             sending_msg = 'Sending an owl to the wizard...'
-            send_key = "Send an owl"
+            send_key = 'Send an owl'
             header_msg = 'Chat with a wizard from Hogwarts'
             default_msg = 'Ask a question to a wizard from Hogwarts and get an answer from the Harry Potter books'
+            vectorstore_msg = 'Create new vectorstore?'
+            llm_msg = 'Choose a LLM model'
+            # chat_history_msg = 'Clear Chat History'
+            radio_yes_msg = 'Yes'
+            radio_no_msg = 'No'
+
+            custom_prompt = custom_prompt_en
 
             model1 = best_model.split('\n')[1]
             model2 = 'daryl149/llama-2-7b-chat-hf'
 
         elif selected_language == 'Spanish':
-            sending_msg = "Enviando un búho al mago..."
+            sending_msg = 'Enviando un búho al mago...'
             language = 'es'
             send_key = "Enviar un búho"
             header_msg = 'Chatea con un mago de Hogwarts'
             default_msg = 'Haz una pregunta a un mago de Hogwarts y obtén una respuesta de los libros de Harry Potter'
+            vectorstore_msg = '¿Crear nuevo vectorstore?'
+            llm_msg = 'Elige un modelo LLM'
+            # chat_history_msg = 'Borrar historial de chat'
+            radio_yes_msg = 'Sí'
+            radio_no_msg = 'No'
 
-            model1 = best_model.split('\n')[1]
-            model2 = 'bigscience/bloom'
+            custom_prompt = custom_prompt_es
+
+            model1 = 'clibrain/Llama-2-7b-ft-instruct-es-gptq-4bit'
+            model2 = 'bigscience/bloom-7b1'
 
         else:
             raise ValueError("language must be 'en' or 'es'")
 
-        selected_model = st.sidebar.selectbox('Choose a LLM model', [model1, model2],
+        new_vectorstore = st.radio(vectorstore_msg, [radio_yes_msg, radio_no_msg], key='new_vectorstore')
+
+        selected_model = st.sidebar.selectbox(llm_msg, [model1, model2],
                                               key='selected_model')
 
-        temperature = st.sidebar.slider('temperature', min_value=0.01, max_value=5.0,
+        temperature = st.sidebar.slider('temperature', min_value=0.01, max_value=1.0,
                                         value=float(best_model.split('\n')[4]), step=0.01)
         top_p = st.sidebar.slider('top_p', min_value=0.5, max_value=1.0, value=float(best_model.split('\n')[5]),
                                   step=0.01)
@@ -195,11 +223,11 @@ def main():
                 doc_chunks = get_document_chunks(documents, split_chunk_size, split_overlap)
 
                 # storage: create vectorstore to store chunks with embeddings
-                vectorstore = get_vectorstore(doc_chunks, language)
+                vectorstore = get_vectorstore(doc_chunks, language, new_vectorstore)
 
                 # chatbot: create chatbot with vectorstore
                 st.session_state.conversation = get_qa_chain(vectorstore, selected_model, temperature, max_length,
-                                                             top_p, repetition_penalty, k)
+                                                             top_p, repetition_penalty, k, custom_prompt, language)
 
     st.header(header_msg + ' 🧙‍')
     user_question = st.text_input(default_msg + ' 📚')
@@ -208,7 +236,7 @@ def main():
         with st.spinner(sending_msg):
             handle_prompts(user_question)
 
-    st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
+    # st.sidebar.button(chat_history_msg, on_click=clear_chat_history)
 
 
 if __name__ == "__main__":

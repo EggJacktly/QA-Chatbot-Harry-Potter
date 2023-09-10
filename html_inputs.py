@@ -45,9 +45,8 @@ user_template = '''
 </div>
 '''
 
-prompt_template = """Use the following pieces of context to answer the question at the end.
+prompt_template_en = """Use the following pieces of context to answer the question at the end.
 If you don't know the answer, just say that you don't know, don't try to make up an answer.
-Answer in the same language the question was asked.
 Use three sentences maximum and keep the answer as concise as possible.
 
 {context}
@@ -55,10 +54,21 @@ Use three sentences maximum and keep the answer as concise as possible.
 Question: {question}
 Answer:"""
 
-
-CUSTOM_PROMPT = PromptTemplate(
-    template = prompt_template, 
+custom_prompt_en = PromptTemplate(
+    template=prompt_template_en,
     input_variables=["context", "question"]
 )
 
+prompt_template_es = """Utilice las siguientes piezas de contexto para responder la pregunta al final.
+Si no sabe la respuesta, simplemente diga que no la sabe, no intente inventar una respuesta.
+Mantenga su respuesta lo más concisa posible.
 
+{context}
+
+Pregunta: {question}
+Respuesta:"""
+
+custom_prompt_es = PromptTemplate(
+    template=prompt_template_es,
+    input_variables=["context", "question"]
+)
