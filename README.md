@@ -52,16 +52,23 @@ To use the HarryPotter Chat App, follow these steps:
 
 3. The application will launch in your default web browser, displaying the user interface.
 
-4. Select your preferred language (currently supports English and Spanish), select a language model and click on the
-   `Send` button.
+4. Select your preferred language (currently supports English and Spanish), select a language model.
 
-5. There are options to change hyperparameters like temperature, top_p, repetition_penalty, etc.
+5. Choose the hyperparameters you would like to use: temperature, top_p, repetition_penalty, etc.
 
-6. Ask questions in natural language about the Harry Potter Universe.
+6. Click on the `Send an owl` button, wait for model to load.
+
+7. Ask questions in natural language about the Harry Potter Universe.
 
 ![Chatbot App English Example](./assets/chatbot_app_example_en.png)
 
 ![Chatbot App](./assets/chatbotapp.png)
+
+## Contributions
+
+----------------------------
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
